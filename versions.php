@@ -38,29 +38,69 @@
  *
  */
 
-  $ignore = array("service" => TRUE);
+$ignore = array("service" => TRUE);
 
-  if ($fp = fopen("info.html", "r")) {
-    $info = fread($fp, filesize("info.html"));
+$info = read_info();
+
+if (is_readable('line_settings.php')) {
+  require_once 'line_settings.php';
+}
+else {
+  $line = read_line();
+}
+
+if ($dp = opendir('.')) {
+  while ($file = readdir($dp)) {
+    if (is_dir($file) && empty($ignore[$file]) && $file[0] <> '.' && is_file($file.'/NEWS.html')) {
+      $dirs[$file] = filemtime($file.'/NEWS.html');
+    }
+  }
+}
+
+// sort according to timestamp
+arsort($dirs, SORT_NUMERIC);
+
+foreach ($dirs as $dir => $sort) {
+  if ($new_style_from) {
+    $d_wsdl = normalize_version($new_style_from) <= normalize_version($dir) ? '?wsdl' : $wsdl;
+    $vers .= str_replace('_DATE_', date('F j Y', $sort), str_replace('_DIR_', $dir, str_replace('_WSDL_', $d_wsdl, $line)));
+  }
+  else {
+    $vers .= str_replace('_DATE_', date('F j Y', $sort), str_replace('_DIR_', $dir, $line));
+  }
+}
+printf($info, $vers);
+
+/* ------------------------------------------------ */
+
+function normalize_version($v) {
+  $ret = array();
+  $parts = explode('.', $v);
+  foreach ($parts as $part) {
+    $ret[] = sprintf('%09s', $part);
+  }
+  return implode('.', $ret);
+}
+
+function read_info() {
+  if ($fp = fopen('info.html', 'r')) {
+    $info = fread($fp, filesize('info.html'));
     fclose($fp);
-  } else
+  } 
+  else {
     $info = "This service expose the following versions:<br/>%s";
+  }
+  return $info;
+}
 
-  if ($fp = fopen("line.html", "r")) {
-    $line = fread($fp, filesize("line.html"));
+function read_line() {
+  if ($fp = fopen('line.html', 'r')) {
+    $line = fread($fp, filesize('line.html'));
     fclose($fp);
-  } else
+  } 
+  else {
     $line = '<a href="_DIR_">_DIR_</a> &nbsp; <a href="_DIR_/NEWS.html">_DIR_/NEWS</a><br/>';
-
-  if ($dp = opendir('.'))
-    while ($file = readdir($dp))
-      if (is_dir($file) && empty($ignore[$file]) && $file[0] <> '.' && is_file($file.'/NEWS.html'))
-        $dirs[$file] = filemtime($file.'/NEWS.html');
-
-  // sort according to timestamp
-  arsort($dirs, SORT_NUMERIC);
-
-  foreach ($dirs as $dir => $sort)
-    $vers .= str_replace("_DATE_", date("F j Y", $sort), str_replace("_DIR_", $dir, $line));
-  printf($info, $vers);
+  }
+  return $line;
+}
 ?>

@@ -41,4 +41,7 @@ Installation
 
 copy versionWrapper.php or versions.php to index.php or make a symbolic link
 
-For version you can correct info.html and line.html to suit you need/ambition
+copy line_settings.php_TEMPLATE to line_settings.php
+For versions you can correct info.html, line.html and line_settings.php to suit you need/ambition
+
+- line_settings.php is used to define from which version ?wsdl can be used directly on the service
