@@ -42,12 +42,7 @@ $ignore = array("service" => TRUE);
 
 $info = read_info();
 
-if (is_readable('line_settings.php')) {
-  require_once 'line_settings.php';
-}
-else {
-  $line = read_line();
-}
+$line = read_line();
 
 if ($dp = opendir('.')) {
   while ($file = readdir($dp)) {
@@ -61,29 +56,14 @@ if ($dp = opendir('.')) {
 arsort($dirs, SORT_NUMERIC);
 
 foreach ($dirs as $dir => $sort) {
-  if ($new_style_from) {
-    $d_wsdl = normalize_version($new_style_from) <= normalize_version($dir) ? '?wsdl' : $wsdl;
-    $vers .= str_replace('_DATE_', date('F j Y', $sort), str_replace('_DIR_', $dir, str_replace('_WSDL_', $d_wsdl, $line)));
-  }
-  else {
-    $vers .= str_replace('_DATE_', date('F j Y', $sort), str_replace('_DIR_', $dir, $line));
-  }
+  $vers .= str_replace('_DATE_', date('F j Y', $sort), str_replace('_DIR_', $dir, $line));
 }
 printf($info, $vers);
 
 /* ------------------------------------------------ */
 
-function normalize_version($v) {
-  $ret = array();
-  $parts = explode('.', $v);
-  foreach ($parts as $part) {
-    $ret[] = sprintf('%09s', $part);
-  }
-  return implode('.', $ret);
-}
-
 function read_info() {
-  if ($fp = fopen('info.html', 'r')) {
+  if ($fp = @ fopen('info.html', 'r')) {
     $info = fread($fp, filesize('info.html'));
     fclose($fp);
   } 
@@ -94,12 +74,12 @@ function read_info() {
 }
 
 function read_line() {
-  if ($fp = fopen('line.html', 'r')) {
+  if ($fp = @ fopen('line.html', 'r')) {
     $line = fread($fp, filesize('line.html'));
     fclose($fp);
   } 
   else {
-    $line = '<a href="_DIR_">_DIR_</a> &nbsp; <a href="_DIR_/NEWS.html">_DIR_/NEWS</a><br/>';
+    $line = '<a href="_DIR_">_DIR_</a> <a href="_DIR_/?wsdl">wsdl</a> <a href="_DIR_/NEWS.html">NEWS.html</a> at _DATE_' . PHP_EOL;
   }
   return $line;
 }
